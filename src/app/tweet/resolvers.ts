@@ -1,6 +1,7 @@
 import { connect } from "http2";
 import { prismaclient } from "../../clients/db";
 import { GraphQLContext } from "../../interfaces";
+import { Tweet } from "@prisma/client";
 
 
 
@@ -38,7 +39,33 @@ const mutations = {
     }
 };
 
+const extraResolvers={
+    Tweet:{
+        author:(parent:Tweet)=>
+            prismaclient.user.findUnique({
+                where:{
+                    id:parent.authorId
+                }
+            })
+    }
+}
+
+const queries={
+    getAllTweets:()=>{
+        return prismaclient.tweet.findMany({
+            orderBy:{
+                createdAt:"desc"
+            }
+        });
+
+    }
+
+
+}
+
 
 export const resolvers={
-    mutations
+    mutations,
+    extraResolvers,
+    queries
 }

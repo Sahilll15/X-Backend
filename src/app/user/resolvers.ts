@@ -1,3 +1,4 @@
+import { User } from "@prisma/client";
 import { prismaclient } from "../../clients/db";
 import { GraphQLContext } from "../../interfaces";
 import JWTSERVICE from "../../services/jwt";
@@ -90,6 +91,17 @@ type GoogleUser = {
   };
   
 
+  const extraResolvers={
+      User:{
+        tweets:(parent:User)=> prismaclient.tweet.findMany({
+          where:{
+            authorId:parent.id
+          }
+        })
+      }
+  }
+
 export const resolvers={
-    queries
+    queries,
+    extraResolvers
 }

@@ -32,16 +32,14 @@ function initServer() {
 
         type Query {
             ${user_1.User.queries}
+            ${tweet_1.Tweet.queries}
                     }
 
         type Mutation {
             ${tweet_1.Tweet.mutations}
         }
     `;
-        const resolvers = {
-            Query: Object.assign({}, user_1.User.resolvers.queries),
-            Mutation: Object.assign({}, tweet_1.Tweet.resolvers.mutations)
-        };
+        const resolvers = Object.assign(Object.assign({ Query: Object.assign(Object.assign({}, user_1.User.resolvers.queries), tweet_1.Tweet.resolvers.queries), Mutation: Object.assign({}, tweet_1.Tweet.resolvers.mutations) }, tweet_1.Tweet.resolvers.extraResolvers), user_1.User.resolvers.extraResolvers);
         const graphQLServer = new server_1.ApolloServer({
             typeDefs,
             resolvers,

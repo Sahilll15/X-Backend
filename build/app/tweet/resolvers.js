@@ -35,6 +35,26 @@ const mutations = {
         }
     })
 };
+const extraResolvers = {
+    Tweet: {
+        author: (parent) => db_1.prismaclient.user.findUnique({
+            where: {
+                id: parent.authorId
+            }
+        })
+    }
+};
+const queries = {
+    getAllTweets: () => {
+        return db_1.prismaclient.tweet.findMany({
+            orderBy: {
+                createdAt: "desc"
+            }
+        });
+    }
+};
 exports.resolvers = {
-    mutations
+    mutations,
+    extraResolvers,
+    queries
 };
