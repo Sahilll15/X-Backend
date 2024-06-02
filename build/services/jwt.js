@@ -24,5 +24,13 @@ class JWTSERVICE {
             return jsonwebtoken_1.default.sign(payload, JWT_SECRET, { expiresIn: '1h' });
         });
     }
+    static deCodeToken(token) {
+        try {
+            return jsonwebtoken_1.default.verify(token, JWT_SECRET);
+        }
+        catch (error) {
+            return null;
+        }
+    }
 }
 exports.default = JWTSERVICE;

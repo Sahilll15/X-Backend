@@ -1,4 +1,5 @@
 import { prismaclient } from "../../clients/db";
+import { GraphQLContext } from "../../interfaces";
 import JWTSERVICE from "../../services/jwt";
 
 type GoogleUser = {
@@ -69,6 +70,23 @@ type GoogleUser = {
         return usertoken
 
     },
+
+    getCurrentUser:async(parent:any,args:any,ctx:GraphQLContext)=>{
+        console.log(ctx);  
+        const id: string | undefined = ctx.user?.id as string | undefined;
+
+        if (!id) {
+          return null;
+        }
+
+        const user = await prismaclient.user.findUnique({
+          where: {
+            id
+          }
+        })
+
+        return user;
+    }
   };
   
 

@@ -1,6 +1,7 @@
 import { User } from "@prisma/client";
 import { prismaclient } from "../clients/db";
 import jwt from 'jsonwebtoken'
+import { JWTUSER } from "../interfaces";
 
 
 const JWT_SECRET='dasdasdsa'
@@ -12,7 +13,7 @@ class JWTSERVICE{
         
     
 
-        const payload={
+        const payload:JWTUSER={
             id:user?.id,
             email:user?.email
         }
@@ -20,6 +21,17 @@ class JWTSERVICE{
         return jwt.sign(payload,JWT_SECRET,{expiresIn:'1h'})
     }
 
+
+    public static deCodeToken(token:string){
+        try {
+            return jwt.verify(token,JWT_SECRET) as JWTUSER;
+        } catch (error) {
+            return null
+        }
+    }
+
 }
+
+
 
 export default JWTSERVICE

@@ -4,7 +4,10 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import { prismaclient } from '../clients/db';
 import { User } from './user';
+import {Tweet} from './tweet'
 import cors from 'cors'
+import { GraphQLContext, JWTUSER } from '../interfaces';
+import JWTSERVICE from '../services/jwt';
 
 
 export async function initServer() {
@@ -14,25 +17,40 @@ export async function initServer() {
 
     const typeDefs = `
       ${User.types}
+      ${Tweet.types}
 
         type Query {
             ${User.queries}
+                    }
+
+        type Mutation {
+            ${Tweet.mutations}
         }
     `;
 
     const resolvers = {
         Query: {
          ...User.resolvers.queries
+        },
+        Mutation:{
+            ...Tweet.resolvers.mutations
         }
     };
 
-    const graphQLServer = new ApolloServer({
+    const graphQLServer = new ApolloServer<GraphQLContext>({
         typeDefs,
         resolvers,
     });
 
     await graphQLServer.start();
-    app.use('/graphql', expressMiddleware(graphQLServer));
+    app.use('/graphql', expressMiddleware(graphQLServer,{
+        context:async({req,res})=>{
+            return  {
+                user:req.headers.authorization? JWTSERVICE.deCodeToken(req.headers.authorization.split("Bearer ")[1]) : undefined
+            }
+               
+        }
+    }));
 
     return app;
 }

@@ -8,6 +8,8 @@ type User {
     profileImageURL:String 
     createdAt: String!
     updatedAt: String!
+
+    tweets:[Tweet]
     
 }
 `;
