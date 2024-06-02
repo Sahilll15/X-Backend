@@ -9,6 +9,7 @@ class JWTSERVICE{
 
 
     public static async generateToken(user:User){
+        
     
 
         const payload={
