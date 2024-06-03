@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.resolvers = void 0;
 const db_1 = require("../../clients/db");
 const jwt_1 = __importDefault(require("../../services/jwt"));
+const user_1 = __importDefault(require("../../services/user"));
 const queries = {
     verifyGoogleToken: (parent_1, _a) => __awaiter(void 0, [parent_1, _a], void 0, function* (parent, { token }) {
         const googleAuthUrl = new URL('https://oauth2.googleapis.com/tokeninfo');
@@ -64,6 +65,14 @@ const queries = {
             }
         });
         return user;
+    }),
+    getUserById: (parent_2, _c) => __awaiter(void 0, [parent_2, _c], void 0, function* (parent, { userId }) {
+        const user = yield db_1.prismaclient.user.findUnique({
+            where: {
+                id: userId
+            }
+        });
+        return user;
     })
 };
 const extraResolvers = {
@@ -72,10 +81,53 @@ const extraResolvers = {
             where: {
                 authorId: parent.id
             }
+        }),
+        followers: (parent) => __awaiter(void 0, void 0, void 0, function* () {
+            const result = yield db_1.prismaclient.follows.findMany({
+                where: {
+                    following: {
+                        id: parent.id
+                    }
+                },
+                include: {
+                    following: true,
+                    follower: true
+                }
+            });
+            return result.map((el) => el.follower);
+        }),
+        following: (parent) => __awaiter(void 0, void 0, void 0, function* () {
+            const result = yield db_1.prismaclient.follows.findMany({
+                where: {
+                    follower: {
+                        id: parent.id
+                    }
+                },
+                include: {
+                    following: true,
+                    follower: true
+                }
+            });
+            return result.map((el) => el.following);
         })
     }
 };
+const mutations = {
+    followUser: (parent_3, _d, ctx_1) => __awaiter(void 0, [parent_3, _d, ctx_1], void 0, function* (parent, { to }, ctx) {
+        if (!ctx.user || !ctx.user.id)
+            throw new Error('unauthenticated');
+        yield user_1.default.followUser(ctx.user.id, to);
+        return true;
+    }),
+    unfollowUser: (parent_4, _e, ctx_2) => __awaiter(void 0, [parent_4, _e, ctx_2], void 0, function* (parent, { to }, ctx) {
+        if (!ctx.user || !ctx.user.id)
+            throw new Error('unauthenticated');
+        yield user_1.default.unfollowUser(ctx.user.id, to);
+        return true;
+    })
+};
 exports.resolvers = {
     queries,
-    extraResolvers
+    extraResolvers,
+    mutations
 };

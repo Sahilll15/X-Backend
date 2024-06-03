@@ -2,6 +2,7 @@ import { User } from "@prisma/client";
 import { prismaclient } from "../../clients/db";
 import { GraphQLContext } from "../../interfaces";
 import JWTSERVICE from "../../services/jwt";
+import UserService from "../../services/user";
 
 type GoogleUser = {
     iss: string;
@@ -87,6 +88,15 @@ type GoogleUser = {
         })
 
         return user;
+    },
+
+    getUserById:async(parent:any,{userId}:{userId:string})=>{
+        const user=await prismaclient.user.findUnique({
+            where:{
+                id:userId
+            }
+        })
+        return user;
     }
   };
   
@@ -98,10 +108,59 @@ type GoogleUser = {
             authorId:parent.id
           }
         })
+,
+        followers:async(parent:User)=>{
+          const result=await prismaclient.follows.findMany({
+            where:{
+              following:{
+                id:parent.id
+              }
+            },
+            include:{
+              following:true,
+              follower:true
+            }
+          })
+
+          return result.map((el)=>el.follower)
+        },
+
+        following:async(parent:User)=>{
+          const result = await prismaclient.follows.findMany({
+            where: {
+              follower: {
+                id: parent.id
+              }
+            },
+            include: {
+              following: true,
+              follower: true
+            }
+          });
+
+          return result.map((el) => el.following);
+        }
       }
+  }
+
+  const mutations={
+    followUser:async(parent:any,{to}:{to:string},ctx:GraphQLContext)=>{
+        if(!ctx.user || !ctx.user.id) throw new Error('unauthenticated');
+        await UserService.followUser(ctx.user.id as string,to);
+        return true;
+        
+    },
+
+    unfollowUser:async(parent:any,{to}:{to:string},ctx:GraphQLContext)=>{
+      if(!ctx.user || !ctx.user.id) throw new Error('unauthenticated');
+      await UserService.unfollowUser(ctx.user.id as string,to);
+      return true;
+      
+  }
   }
 
 export const resolvers={
     queries,
-    extraResolvers
+    extraResolvers,
+    mutations
 }

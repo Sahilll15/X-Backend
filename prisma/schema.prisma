@@ -11,28 +11,40 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-
 }
 
-model User{
-  id String @id @default(cuid())
-  firstName String
-  lastName String
-  email String @unique
+model User {
+  id              String   @id @default(cuid())
+  firstName       String
+  lastName        String
+  email           String   @unique
   profileImageURL String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tweets    Tweet[]
+  followers Follows[] @relation("follower")
+  following Follows[] @relation("following")
+}
+
+model Follows {
+  follower   User   @relation("follower", fields: [followerId], references: [id])
+  followerId String
+
+  following   User   @relation("following", fields: [followingId], references: [id])
+  followingId String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tweets Tweet[]
+  @@id([followerId, followingId])
 }
 
-
 model Tweet {
-  id String @id @default(cuid())
-  content String
+  id       String  @id @default(cuid())
+  content  String
   imageURL String?
-  author User @relation(fields: [authorId],references: [id])
+  author   User    @relation(fields: [authorId], references: [id])
   authorId String
 
   createdAt DateTime @default(now())
